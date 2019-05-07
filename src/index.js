@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import logoImg from "./assets/logo.png";
+//import logoImg from "./assets/logo.png";
 //import Enemy from "./Enemy"
 //import Turret from "./Turret"
 import Bullet from "./Bullet"
@@ -134,7 +134,7 @@ function getEnemy(x, y, distance) {
 
 
 function damageEnemy(enemy, bullet) {
-    console.log(enemy, bullet)
+    //console.log(enemy, bullet)
     if (enemy.active && bullet.active) {
         bullet.setActive(false)
         bullet.setVisible(false)
