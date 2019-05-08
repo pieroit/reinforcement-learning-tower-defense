@@ -1,12 +1,11 @@
 import Phaser from "phaser";
-//import logoImg from "./assets/logo.png";
-//import Enemy from "./Enemy"
-//import Turret from "./Turret"
+import Enemy  from "./Enemy"
+import Turret from "./Turret"
 import Bullet from "./Bullet"
 
 const config = {
     type: Phaser.AUTO,
-    parent: "phaser-example",
+    parent: "phaser",
     width: 800,
     height: 500,
     physics: {
@@ -23,88 +22,13 @@ const config = {
 };
 
 const game = new Phaser.Game(config)
-let graphics
-let path
-let enemies, turrets, bullets
-
-let Enemy = new Phaser.Class({
-
-    Extends: Phaser.GameObjects.Image,
-
-    initialize: function Enemy(scene) {
-        Phaser.GameObjects.Image.call(this, scene, 0, 0, 'enemy')
-        this.follower = {
-            t: 0,
-            vec: new Phaser.Math.Vector2()
-        }
-    },
-
-    startOnPath: function () {
-        this.hp = 100
-        this.follower.t = 0
-        path.getPoint(this.follower.t, this.follower.vec)
-        this.setPosition(this.follower.vec.x, this.follower.vec.y)
-    },
-
-    receiveDamage: function (damage) {
-        this.hp -= damage
-        if (this.hp <= 0) {
-            this.setActive(false)
-            this.setVisible(false)
-        }
-    },
-
-    update: function (time, delta) {
-        this.follower.t += 1 / 10000 * delta
-        path.getPoint(this.follower.t, this.follower.vec)
-        this.setPosition(this.follower.vec.x, this.follower.vec.y)
-
-        if (this.follower.t >= 1) {
-            this.setActive(false)
-            this.setVisible(false)
-        }
-    }
-})
-
-
-let Turret = new Phaser.Class({
-
-    Extends: Phaser.GameObjects.Image,
-
-    initialize: function Turret(scene) {
-        Phaser.GameObjects.Image.call(this, scene, 0, 0, 'turret')
-        this.nextTic = 0
-    },
-
-    place: function (i, j) {
-        this.x = j * 64 + 32
-        this.y = i * 64 + 32
-        //map[i][j] = 1
-    },
-
-    fire: function () {
-        let enemy = getEnemy(this.x, this.y, 100)
-        if (enemy) {
-            let angle = Phaser.Math.Angle.Between(this.x, this.y, enemy.x, enemy.y)
-            addBullet(this.x, this.y, angle)
-            this.angle = (angle + Math.PI / 2) * Phaser.Math.RAD_TO_DEG
-        }
-    },
-
-    update: function (time, delta) {
-        if (time > this.nextTic) {
-            this.fire()
-            this.nextTic = time + 1000
-        }
-    }
-})
-
+let path, enemies, turrets, bullets
 
 function placeTurret(pointer) {
     let i = Math.floor(pointer.y / 64)
     let j = Math.floor(pointer.x / 64)
     if (/*canPlaceTurret(i, j)*/true) {
-        let turret = turrets.get()
+        let turret = turrets.create(enemies, bullets)
         if (turret) {
             turret.setActive(true)
             turret.setVisible(true)
@@ -113,33 +37,18 @@ function placeTurret(pointer) {
     }
 }
 
-function addBullet(x, y, angle) {
-    let bullet = bullets.get()
-    if (bullet) {
-        bullet.fire(x, y, angle)
-    }
-}
-
-function getEnemy(x, y, distance) {
-    let enemiesss = enemies.getChildren()
-    for (let e of enemiesss) {
-        let enemyDistance = Phaser.Math.Distance.Between(x, y, e.x, e.y)
-        if (e.active && enemyDistance < distance) {
-            return e
-        }
-    }
-
-    return false
-}
-
-
 function damageEnemy(enemy, bullet) {
     //console.log(enemy, bullet)
     if (enemy.active && bullet.active) {
-        bullet.setActive(false)
-        bullet.setVisible(false)
-
-        enemy.receiveDamage(30)
+        // damage enemy
+        enemy.receiveDamage(bullet.damage)
+        
+        // update reward and next environment state
+        let reward    = bullet.damage
+        let nextState = bullet.shooterTurret.getNearEnemies().length
+        bullet.shooterTurret.learn(reward, nextState)
+        
+        bullet.destroy()
     }
 }
 
@@ -147,7 +56,9 @@ function damageEnemy(enemy, bullet) {
 function preload() {
     this.load.image('turret', 'assets/turret.png')
     this.load.image('enemy', 'assets/enemy.png')
-    this.load.image('bullet', 'assets/bullet.png')
+    this.load.image('bomb', 'assets/bomb.png')
+    this.load.image('sniper', 'assets/sniper.png')
+    this.load.image('automatic', 'assets/automatic.png')
 
 }
 
@@ -155,10 +66,10 @@ function create() {
 
     let graphics = this.add.graphics()
 
-    path = this.add.path(90, -30)
-    path.lineTo(90, 160)
-    path.lineTo(480, 160)
-    path.lineTo(480, 500)
+    path = this.add.path(50, -30)
+    path.lineTo(50, 160)
+    path.lineTo(600, 160)
+    path.lineTo(600, 500)
 
     graphics.lineStyle(3, 0xffffff, 1)
 
@@ -188,13 +99,17 @@ function create() {
 
 function update(time, delta) {
     if (time > this.nextEnemy) {
-        let enemy = enemies.get()
+        let enemy = enemies.create(path)
         if (enemy) {
             enemy.setActive(true)
             enemy.setVisible(true)
             enemy.startOnPath()
 
-            this.nextEnemy = time + 2000
+            // alternate dense enemies to rare enemies
+            let seconds = Math.round(time/1000)
+            let secondsFromMinute = seconds % 60
+            let enemyInterval = 25 * secondsFromMinute + 500
+            this.nextEnemy = time + ( Math.random() * enemyInterval )
         }
     }
 }

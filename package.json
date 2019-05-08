@@ -33,6 +33,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
+    "mathjs": "^5.9.0",
     "phaser": "^3.16.2"
   }
 }
