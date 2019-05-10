@@ -15,7 +15,7 @@ let Bullet = new Phaser.Class({
             },
             {
                 name  : 'automatic',
-                damage: 10,
+                damage: 15,
                 speed : Phaser.Math.GetSpeed(800,1),
                 delay : 100
             },

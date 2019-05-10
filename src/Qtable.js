@@ -16,7 +16,7 @@ class Qtable {
         this.state  = 0
         this.action = 0
 
-        this.rewards = []
+        this.totalRewards = 0
     }
 
     getAction(state) {
@@ -55,13 +55,10 @@ class Qtable {
 
     updateHUD(reward) {
         
-        this.rewards.push(reward)
-        if(this.rewards.length > 100) {
-            this.rewards.shift()
-        }
+        this.totalRewards += reward      
 
         let scoreEl = document.getElementById("rps")
-        scoreEl.innerText = Math.round( math.mean(this.rewards) )
+        scoreEl.innerText = Math.round( this.totalRewards )
 
         let exploEl = document.getElementById("exploration")
         exploEl.innerText = Math.round(this.exploration*100) + '%'

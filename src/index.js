@@ -67,8 +67,8 @@ function create() {
     let graphics = this.add.graphics()
 
     path = this.add.path(50, -30)
-    path.lineTo(50, 160)
-    path.lineTo(600, 160)
+    path.lineTo(50, 150)
+    path.lineTo(600, 150)
     path.lineTo(600, 500)
 
     graphics.lineStyle(3, 0xffffff, 1)
@@ -108,8 +108,8 @@ function update(time, delta) {
             // alternate dense enemies to rare enemies
             let seconds = Math.round(time/1000)
             let secondsFromMinute = seconds % 60
-            let enemyInterval = 25 * secondsFromMinute + 500
-            this.nextEnemy = time + ( Math.random() * enemyInterval )
-        }
+            let enemyInterval = 25 * secondsFromMinute
+            this.nextEnemy = time + 200 + ( Math.random() * enemyInterval )
+        } 
     }
 }
